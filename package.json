@@ -1,0 +1,26 @@
+{
+  "name": "job-event-artillery",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run artillery.yml",
+    "normal-load": "cross-env MULTICORE=true ARTILLERY_WORKERS=2 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e normal-load artillery.yml",
+    "heavy-load": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e heavy-load artillery.yml"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "artillery": "1.6.0-29",
+    "async": "^3.2.0",
+    "aws-sdk": "^2.627.0",
+    "cross-env": "^7.0.0",
+    "debug": "^4.1.1",
+    "lodash": "^4.17.15",
+    "module-alias": "^2.2.2"
+  },
+  "_moduleAliases": {
+    "artillery-engine-sns": "./sns-engine/index.js"
+  }
+}

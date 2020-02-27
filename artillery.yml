@@ -1,0 +1,55 @@
+config:
+  target: "sns_topic"
+  sns:
+    topicArn: "arn:aws:sns:us-west-2:082893808893:job-durability-experiment-long-poll"
+    region: "us-west-2"
+  engines:
+    sns: {}
+  environments:
+    normal-load:
+      phases:
+        # arrivalRate is how many times per second artillery will start the flow in the scenario below
+        # duration is how long, in seconds, to execute at the given arrivalRate
+        - arrivalRate: 28 # This represents 28 single file jobs per second. It was calculated as: 300 tenants x 100,000 files per month / 20 working days in a month / 15 business hours / 60 mins / 60 sec
+          duration: 300 # (5 minutes)
+    heavy-load:
+      phases:
+        - arrivalRate: 111 # 4x volume of normal load
+          duration: 300 # (5 minutes)
+    debug:
+      phases:
+        - arrivalRate: 1
+          duration: 1
+
+scenarios:
+  - name: "Job Life Cycle"
+    engine: sns
+    flow:
+      - publish:
+          #init job
+          data: >-
+            {"version":"1","agentId":"ba6ad81b-8ea3-4c57-a93b-adda6ddb6e8f","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","sourceEndpointId":"9c762678-b2b6-412f-8b1c-946099806438","destinationEndpointId":"3130bbea-142c-454c-bfbe-122e66579d4a","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.171Z","timestamp":"2020-02-26T04:44:47.370Z","status":"IN_PROGRESS","type":"initiated","metadata":{}}
+      - publish:
+          #job details
+          data: >-
+            {"version":"1","agentId":"ba6ad81b-8ea3-4c57-a93b-adda6ddb6e8f","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","sourceEndpointId":"9c762678-b2b6-412f-8b1c-946099806438","destinationEndpointId":"3130bbea-142c-454c-bfbe-122e66579d4a","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.171Z","timestamp":"2020-02-26T04:44:47.407Z","status":"IN_PROGRESS","type":"details","metadata":{},"totalItems":10,"totalBytes":38912,"items":[{"name":"test-data-6.bin","size":6144},{"name":"test-data-10.bin","size":3072},{"name":"test-data-1.bin","size":4096},{"name":"test-data-3.bin","size":5120},{"name":"test-data-8.bin","size":6144},{"name":"test-data-9.bin","size":5120},{"name":"test-data-2.bin","size":4096},{"name":"test-data-7.bin","size":3072},{"name":"test-data-4.bin","size":1024},{"name":"test-data-5.bin","size":1024}]}
+      - publish:
+          #initial outbound status
+          data: >-
+            {"version":"1","agentId":"ba6ad81b-8ea3-4c57-a93b-adda6ddb6e8f","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.171Z","timestamp":"2020-02-26T04:44:47.598Z","status":"IN_PROGRESS","type":"status","name":"test-data-6.bin","fileId":"b1e3eba6-8786-4799-8e14-d270fef1672e","endpointId":"9c762678-b2b6-412f-8b1c-946099806438","size":6144,"bytesTransferred":0,"direction":"outbound"}
+      - publish:
+          #initial inbound status
+          data: >-
+            {"version":"1","agentId":"ef56a01d-2b83-48e5-a58a-13a470221de2","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.352Z","timestamp":"2020-02-26T04:44:47.786Z","status":"IN_PROGRESS","type":"status","name":"test-data-6.bin","fileId":"b1e3eba6-8786-4799-8e14-d270fef1672e","endpointId":"3130bbea-142c-454c-bfbe-122e66579d4a","size":6144,"bytesTransferred":0,"direction":"inbound"}
+      - publish:
+          #final outbound status
+          data: >-
+            {"version":"1","agentId":"ba6ad81b-8ea3-4c57-a93b-adda6ddb6e8f","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.171Z","timestamp":"2020-02-26T04:44:47.982Z","status":"SUCCESS","type":"status","name":"test-data-6.bin","fileId":"b1e3eba6-8786-4799-8e14-d270fef1672e","endpointId":"9c762678-b2b6-412f-8b1c-946099806438","size":6144,"bytesTransferred":6144,"direction":"outbound"}
+      - publish:
+          #final inbound status
+          data: >-
+            {"version":"1","agentId":"ef56a01d-2b83-48e5-a58a-13a470221de2","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.352Z","timestamp":"2020-02-26T04:45:11.540Z","status":"SUCCESS","type":"status","metadata":{"jobInfo":"{\"jobId\":\"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f\",\"dataflowId\":\"7b6a485c-2007-4c3e-9d90-6dc318ce659c\"}","messageId":"CLEO-20200226_044457176-91U89T@source-fs-confident_brown-1_target-as2-confident_brown-1.SPE-44.232.252.209.SPE2-A","status":"SUCCESS","statusMessage":"No MDN requested","receipt":"","fileIds":["b1e3eba6-8786-4799-8e14-d270fef1672e"],"events":"https://spe-steve-us-west-2.cleointegration.xyz/api/transfers/c4799968-38d0-4225-96b2-10ed660d72b2/events","more":{},"payload":"s3://crowsnest-dataflow-pr2632-agent-archive-us-west-2/dffc140d-d7ba-4177-9b2c-317f2696f2fd/jobs/a61086fb-cc76-4706-a4bc-79f9f6ec4c8f/b1e3eba6-8786-4799-8e14-d270fef1672e"},"name":"test-data-6.bin","fileId":"b1e3eba6-8786-4799-8e14-d270fef1672e","endpointId":"3130bbea-142c-454c-bfbe-122e66579d4a","size":6144,"bytesTransferred":6144,"direction":"inbound","componentType":"SPE"}
+      - publish:
+          #job result
+          data: >-
+            {"version":"1","agentId":"ef56a01d-2b83-48e5-a58a-13a470221de2","dataflowId":"7b6a485c-2007-4c3e-9d90-6dc318ce659c","sourceEndpointId":"9c762678-b2b6-412f-8b1c-946099806438","destinationEndpointId":"3130bbea-142c-454c-bfbe-122e66579d4a","jobId":"a61086fb-cc76-4706-a4bc-79f9f6ec4c8f","startDate":"2020-02-26T04:44:42.352Z","timestamp":"2020-02-26T04:45:11.709Z","status":"SUCCESS","type":"result","metadata":{},"totalComplete":10,"totalSucceeded":10,"totalStopped":0,"totalFailed":0,"totalBytesTransferred":38912}
