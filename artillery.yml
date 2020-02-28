@@ -14,7 +14,7 @@ config:
           duration: 300 # (5 minutes)
     heavy-load:
       phases:
-        - arrivalRate: 111 # 4x volume of normal load
+        - arrivalRate: 140 # 5x volume of normal load
           duration: 300 # (5 minutes)
     debug:
       phases:
