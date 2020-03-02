@@ -1,29 +1,45 @@
 config:
-  target: "sns_topic"
+  target: "ignore this"
   sns:
-    topicArn: "arn:aws:sns:us-west-2:082893808893:job-durability-experiment-long-poll"
+    topicArn: "arn:aws:sns:us-west-2:082893808893:job-durability-experiment-lambda"
+    region: "us-west-2"
+  fifo:
+    queueUrl: "FILL IN YOUR QUEUE"
     region: "us-west-2"
   engines:
     sns: {}
+    fifo: {}
   environments:
     normal-load:
+      engine: sns
       phases:
         # arrivalRate is how many times per second artillery will start the flow in the scenario below
         # duration is how long, in seconds, to execute at the given arrivalRate
         - arrivalRate: 28 # This represents 28 single file jobs per second. It was calculated as: 300 tenants x 100,000 files per month / 20 working days in a month / 15 business hours / 60 mins / 60 sec
           duration: 300 # (5 minutes)
     heavy-load:
+      engine: sns
+      phases:
+        - arrivalRate: 140 # 5x volume of normal load
+          duration: 300 # (5 minutes)
+    normal-load-fifo:
+      engine: fifo
+      phases:
+        - arrivalRate: 28
+          duration: 300 # (5 minutes)
+    heavy-load-fifo:
+      engine: fifo
       phases:
         - arrivalRate: 140 # 5x volume of normal load
           duration: 300 # (5 minutes)
     debug:
+      engine: fifo
       phases:
         - arrivalRate: 1
           duration: 1
 
 scenarios:
   - name: "Job Life Cycle"
-    engine: sns
     flow:
       - publish:
           #init job

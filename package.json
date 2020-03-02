@@ -6,7 +6,9 @@
   "scripts": {
     "start": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run artillery.yml",
     "normal-load": "cross-env MULTICORE=true ARTILLERY_WORKERS=2 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e normal-load artillery.yml",
-    "heavy-load": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e heavy-load artillery.yml"
+    "heavy-load": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e heavy-load artillery.yml",
+    "normal-load-fifo": "cross-env MULTICORE=true ARTILLERY_WORKERS=2 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e normal-load-fifo artillery.yml",
+    "heavy-load-fifo": "cross-env MULTICORE=true ARTILLERY_WORKERS=7 node -r module-alias/register ./node_modules/artillery/bin/artillery run -e heavy-load-fifo artillery.yml"
   },
   "keywords": [],
   "author": "",
@@ -18,9 +20,12 @@
     "cross-env": "^7.0.0",
     "debug": "^4.1.1",
     "lodash": "^4.17.15",
-    "module-alias": "^2.2.2"
+    "module-alias": "^2.2.2",
+    "uuid": "^7.0.1"
   },
   "_moduleAliases": {
-    "artillery-engine-sns": "./sns-engine/index.js"
-  }
+    "artillery-engine-sns": "./sns-engine/index.js",
+    "artillery-engine-fifo": "./fifo-engine/index.js"
+  },
+  "devDependencies": {}
 }
