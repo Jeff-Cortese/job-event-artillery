@@ -1,11 +1,11 @@
-const SNS = require('aws-sdk').SNS;
-const debug = require('debug')('engine:sns');
+const Lambda = require('aws-sdk').Lambda;
+const debug = require('debug')('engine:lambda');
 const Async = require('async');
 const _ = require('lodash');
 
 process.env.AWS_NODEJS_CONNECTION_REUSE_ENABLED = 1;
 
-function SNSEngine(script, ee, helpers) {
+function LambdaEngine(script, ee, helpers) {
   this.script = script;
   this.ee = ee;
   this.helpers = helpers;
@@ -13,13 +13,13 @@ function SNSEngine(script, ee, helpers) {
   return this;
 }
 
-SNSEngine.prototype.createScenario = function createScenario(scenarioSpec, ee) {
+LambdaEngine.prototype.createScenario = function createScenario(scenarioSpec, ee) {
   const tasks = scenarioSpec.flow.map(rs => this.step(rs, ee));
 
   return this.compile(tasks, scenarioSpec.flow, ee);
 };
 
-SNSEngine.prototype.step = function step(rs, ee) {
+LambdaEngine.prototype.step = function step(rs, ee) {
   const self = this;
 
   if (rs.loop) {
@@ -60,22 +60,21 @@ SNSEngine.prototype.step = function step(rs, ee) {
     };
   }
 
-  if (rs.publish) {
-    return function publish(context, callback) {
-      const event = JSON.parse(rs.publish.data);
+  if (rs.invoke) {
+    return function invoke(context, callback) {
+      const event = JSON.parse(rs.invoke.data);
 
-      const publishParams = {
-        Message: JSON.stringify(event),
-        TopicArn: self.script.config.sns.topicArn,
-        MessageAttributes: {
-          jobEventType: { DataType: 'String', StringValue: event.type }
-        },
+      const invokeParams = {
+        Payload: JSON.stringify(event),
+        FunctionName: self.script.config.lambda.functionName,
+        InvocationType: 'Event',
+        LogType: 'Tail'
       };
 
       ee.emit('request');
       const startedAt = process.hrtime();
 
-      context.sns.publish(publishParams, function (err, data) {
+      context.lambda.invoke(invokeParams, function (err, data) {
         if (err) {
           debug(err);
           ee.emit('error', err);
@@ -96,13 +95,13 @@ SNSEngine.prototype.step = function step(rs, ee) {
   };
 };
 
-SNSEngine.prototype.compile = function compile(tasks, scenarioSpec, ee) {
+LambdaEngine.prototype.compile = function compile(tasks, scenarioSpec, ee) {
   const self = this;
-  const sns = new SNS({ region: self.script.config.sns.region || 'us-west-2' });
+  const lambda = new Lambda({ region: self.script.config.lambda.region || 'us-west-2' });
 
   return function scenario(initialContext, callback) {
     const init = function init(next) {
-      initialContext.sns = sns;
+      initialContext.lambda = lambda;
       ee.emit('started');
       return next(null, initialContext);
     };
@@ -121,4 +120,4 @@ SNSEngine.prototype.compile = function compile(tasks, scenarioSpec, ee) {
   };
 };
 
-module.exports = SNSEngine;
+module.exports = LambdaEngine;

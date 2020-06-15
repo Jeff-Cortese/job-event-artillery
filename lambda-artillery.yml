@@ -1,0 +1,27 @@
+config:
+  target: "ignore this"
+  lambda:
+    functionName: "FILL IN"
+    region: "us-west-2"
+  engines:
+    lambda: {}
+  environments:
+    default:
+      engine: lambda
+      phases:
+        # arrivalRate is how many times per second artillery will start the flow in the scenario below
+        # duration is how long, in seconds, to execute at the given arrivalRate
+        - arrivalRate: 1
+          duration: 1
+    debug:
+      engine: lambda
+      phases:
+        - arrivalRate: 1
+          duration: 1
+
+scenarios:
+  - name: "Simple Event"
+    flow:
+      - invoke:
+          data: >-
+            { "requestType": "TEST" }

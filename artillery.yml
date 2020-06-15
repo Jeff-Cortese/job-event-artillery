@@ -33,7 +33,7 @@ config:
         - arrivalRate: 140 # 5x volume of normal load
           duration: 300 # (5 minutes)
     debug:
-      engine: fifo
+      engine: sns
       phases:
         - arrivalRate: 1
           duration: 1
