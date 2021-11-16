@@ -17,7 +17,7 @@
   "dependencies": {
     "artillery": "1.6.0-29",
     "async": "^3.2.0",
-    "aws-sdk": "^2.627.0",
+    "aws-sdk": "^2.814.0",
     "cross-env": "^7.0.0",
     "debug": "^4.1.1",
     "lodash": "^4.17.15",
